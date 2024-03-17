@@ -2,19 +2,20 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
 def welcome_buttons() -> InlineKeyboardMarkup:
-    problem_butt = InlineKeyboardButton(text='Сообщить о проблемме', callback_data='problem1')
-    guide_butt = InlineKeyboardButton(text='Как правилно сфотографироваться', callback_data='guide')
+    problem_butt = InlineKeyboardButton(text='Сообщить о проблеме', callback_data='problem1')
+    guide_butt = InlineKeyboardButton(text='Как правильно сфотографироваться', callback_data='guide')
     markup = InlineKeyboardMarkup()
-    markup.add(problem_butt, guide_butt)
+    markup.add(problem_butt)
+    markup.add(guide_butt)
     return markup
 
 
 def address_buttons() -> InlineKeyboardMarkup:
     sbs = InlineKeyboardMarkup(text='МФЦ на Уральской 79/6 (СБС)', callback_data='address_SBS', row_width=2)
-    zipovskaya = InlineKeyboardButton(text='МЦФ на Зиповской 5', callback_data='address_zipovskaya', row_width=2)
+    zipovskaya = InlineKeyboardButton(text='МФЦ на Зиповской 5', callback_data='address_zipovskaya', row_width=2)
     dzerzhinskogo = InlineKeyboardButton(text='МФЦ на Дзержинского 100 (ТЦ Красная Площадь)',
                                          callback_data='address_dzerzhinskogo', row_width=2)
-    krasnaya = InlineKeyboardButton(text='МФЦ на Красной 176 (ТЦ Красная Площадь)', callback_data='address_krasnaya',
+    krasnaya = InlineKeyboardButton(text='МФЦ на Красной 176 (ТЦ Центр города)', callback_data='address_krasnaya',
                                     row_width=2)
     markup = InlineKeyboardMarkup()
     markup.add(sbs)

@@ -10,6 +10,9 @@ from buttons import welcome_buttons, address_buttons, problems
 import os
 from dotenv import load_dotenv
 
+photo_guide_id = "AgACAgIAAxkBAAIHKGX3FO4lpZmaa52kqxlPp2Ss3OKnAAK_3DEbT9K4S4rB8EkZmWDyAQADAgADeQADNAQ"
+admin_group_id = "-1002035517605"
+
 load_dotenv()
 
 TOKEN = os.getenv("TOKEN")
@@ -27,9 +30,9 @@ class BadPhotos(StatesGroup):
 
 state_address = {
     "SBS": "МФЦ на Уральской 79/6 (СБС)",
-    "zipovskaya": "МЦФ на Зиповской 5",
+    "zipovskaya": "МФЦ на Зиповской 5",
     "dzerzhinskogo": "МФЦ на Дзержинского 100 (ТЦ Красная Площадь)",
-    "krasnaya": "МФЦ на Красной 176 (ТЦ Красная Площадь)"
+    "krasnaya": "МФЦ на Красной 176 (ТЦ Центр города)"
 }
 
 
@@ -52,7 +55,8 @@ async def guide(callback: types.CallbackQuery):
 5️⃣Убедитесь, что фотография полностью Вас устраивает и нажмите кнопку «Далее». Печать 🖨 фотографий начнется сразу после оплаты.
 
 6️⃣Для оплаты по карте нажмите на изображение банковской карты💳. Оплатите услугу бесконтактным способом используя банковскую карту или смартфон с NFC модулем🚀
-\n Для того чтобы вернуться в начало отправте /start''')
+\n Для того чтобы вернуться в начало отправьте /start''')
+    await callback.message.answer_photo(photo_guide_id)
 
 
 async def choose_address(callback: types.CallbackQuery):
@@ -69,21 +73,23 @@ async def not_working(callback: types.CallbackQuery):
     address = callback.data.split("_")[2]
     await callback.message.edit_text(
         "Благодарим за обращение! С Вами свяжутся в течении 5 минут для уточнения информации. "
-        "\nДля того чтобы вернуться в начало отправте /start")
-    await bot.send_message("-4181490818", "#Break \nПоступило обращение от пользвователя @"
-                           + callback.from_user.username + "\nАдресс кабинки: "
+        "\nДля того чтобы вернуться в начало отправьте /start")
+    await bot.send_message(admin_group_id, "#Проблема_выключено \nПоступило обращение от пользвователя @"
+                           + callback.from_user.username + "\nАдрес кабинки: "
                            + state_address[address])
 
 
-async def photo_lines_one(callback: types.CallbackQuery):
+async def photo_lines_one(callback: types.CallbackQuery, state: FSMContext):
     await BadPhotos.order_numb.set()
-    await callback.message.edit_text("Отправте номер заказа, или дату и времня оплаты пример (12.01 13:00)")
+    address = callback.data.split("_")[2]
+    await state.update_data(address=address)
+    await callback.message.edit_text("Отправьте номер заказа, или дату и времня оплаты пример (12.01 13:00)")
 
 
 async def photo_lines_two(message: types.Message, state: FSMContext):
     await BadPhotos.photos.set()
     await state.update_data(order_numb=message.text)
-    await message.answer("Отправте фото бракованных фотографий")
+    await message.answer("Отправьте фото бракованных фотографий")
 
 
 async def photo_lines_three(message: types.Message, state: FSMContext):
@@ -92,10 +98,11 @@ async def photo_lines_three(message: types.Message, state: FSMContext):
         order_numb = await state.get_data()
         await message.answer("Благодарим за обращение! Проанализируем информацию и свяжемся с вами для возврата "
                              "денежных средств!"
-                             "\nДля того чтобы вернуться в начало отправте /start")
-        await bot.send_photo(-4181490818, photo.file_id,
-                             caption=("#BadPrint номер заказа: <blockquote>" + order_numb['order_numb'] +
-                                      "</blockquote>\nот пользователя @" + message.from_user.username),
+                             "\nДля того чтобы вернуться в начало отправьте /start")
+        await bot.send_photo(admin_group_id, photo.file_id,
+                             caption=("#Проблема_печать номер заказа: <blockquote>" + order_numb['order_numb'] +
+                                      "</blockquote>\nот Пользователя @" + message.from_user.username +
+                                      "\nАдрес кабинки: " + state_address[order_numb['address']]),
                              parse_mode='HTML'
                              )
         await state.reset_state()
@@ -105,7 +112,7 @@ async def photo_lines_three(message: types.Message, state: FSMContext):
 
 
 def main_routers(dp: Dispatcher):
-    dp.register_message_handler(welcome, commands=["start"])
+    dp.register_message_handler(welcome, commands=["start"], state="*")
     dp.register_callback_query_handler(guide,
                                        lambda callback_query: callback_query.data == "guide",
                                        state="*")
