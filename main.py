@@ -10,7 +10,7 @@ from buttons import welcome_buttons, address_buttons, problems
 import os
 from dotenv import load_dotenv
 
-photo_guide_id = "AgACAgIAAxkBAAIHKGX3FO4lpZmaa52kqxlPp2Ss3OKnAAK_3DEbT9K4S4rB8EkZmWDyAQADAgADeQADNAQ"
+photo_guide_id = "AgACAgIAAxkBAAMVZfckhCK92ePeXEK7TsliYXKWQC0AAr_cMRtP0rhL2vvB82OddZEBAAMCAAN5AAM0BA"
 admin_group_id = "-1002035517605"
 
 load_dotenv()
@@ -38,6 +38,12 @@ state_address = {
 
 async def welcome(message: types.Message):
     await message.answer('Вас приветсвует техническая поддержка NanoPhoto', reply_markup=welcome_buttons())
+
+
+async def photos(message: types.Message):
+    if message.photo:
+        photo = message.photo[-1]
+    print(photo.file_id)
 
 
 async def guide(callback: types.CallbackQuery):
@@ -74,7 +80,7 @@ async def not_working(callback: types.CallbackQuery):
     await callback.message.edit_text(
         "Благодарим за обращение! С Вами свяжутся в течении 5 минут для уточнения информации. "
         "\nДля того чтобы вернуться в начало отправьте /start")
-    await bot.send_message(admin_group_id, "#Проблема_выключено \nПоступило обращение от пользвователя @"
+    await bot.send_message(admin_group_id, "#Проблема_выключено \nПоступило обращение от пользователя @"
                            + callback.from_user.username + "\nАдрес кабинки: "
                            + state_address[address])
 
@@ -83,7 +89,7 @@ async def photo_lines_one(callback: types.CallbackQuery, state: FSMContext):
     await BadPhotos.order_numb.set()
     address = callback.data.split("_")[2]
     await state.update_data(address=address)
-    await callback.message.edit_text("Отправьте номер заказа, или дату и времня оплаты пример (12.01 13:00)")
+    await callback.message.edit_text("Отправьте номер заказа, или дату и время оплаты пример (12.01 13:00)")
 
 
 async def photo_lines_two(message: types.Message, state: FSMContext):
@@ -112,6 +118,7 @@ async def photo_lines_three(message: types.Message, state: FSMContext):
 
 
 def main_routers(dp: Dispatcher):
+    dp.register_message_handler(photos, state="*", content_types=types.ContentType.PHOTO)
     dp.register_message_handler(welcome, commands=["start"], state="*")
     dp.register_callback_query_handler(guide,
                                        lambda callback_query: callback_query.data == "guide",
